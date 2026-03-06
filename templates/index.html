@@ -1,0 +1,494 @@
+{% extends "base.html" %}
+
+{% block title %}MedGuard AI - Patient Safety Intelligence{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="gradient-bg py-20 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-10 left-10 w-72 h-72 bg-white rounded-full blur-3xl"></div>
+        <div class="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+        <div class="slide-in">
+            <div class="inline-block mb-6 float-animation">
+                <i class="fas fa-shield-virus text-7xl text-white neon-text"></i>
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-6 neon-text">
+                MedGuard AI
+            </h1>
+            <p class="text-2xl md:text-3xl text-blue-100 mb-4 font-semibold">
+                Patient Safety Intelligence System
+            </p>
+            <p class="text-lg text-blue-200 max-w-3xl mx-auto leading-relaxed">
+                AI-powered screening that identifies medical risks and protects patients before harm occurs
+            </p>
+            <div class="mt-8 flex justify-center gap-4">
+                <span class="px-6 py-2 bg-white bg-opacity-20 rounded-full text-white text-sm font-medium backdrop-blur-sm">
+                    <i class="fas fa-brain mr-2"></i>Gemini AI Powered
+                </span>
+                <span class="px-6 py-2 bg-white bg-opacity-20 rounded-full text-white text-sm font-medium backdrop-blur-sm">
+                    <i class="fas fa-bolt mr-2"></i>Real-time Analysis
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-16 relative z-20">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        
+        <!-- Total Patients -->
+        <div class="glass-effect rounded-2xl shadow-2xl p-6 text-center card-hover">
+            <div class="medical-gradient w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-users text-2xl text-white"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-gray-800" id="totalPatients">0</h3>
+            <p class="text-gray-600 font-medium">Total Patients</p>
+        </div>
+        
+        <!-- Critical Cases -->
+        <div class="glass-effect rounded-2xl shadow-2xl p-6 text-center card-hover">
+            <div class="critical-gradient w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 pulse-animation">
+                <i class="fas fa-exclamation-triangle text-2xl text-white"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-red-600" id="criticalCount">0</h3>
+            <p class="text-gray-600 font-medium">Critical Cases</p>
+        </div>
+        
+        <!-- Moderate Cases -->
+        <div class="glass-effect rounded-2xl shadow-2xl p-6 text-center card-hover">
+            <div class="moderate-gradient w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-clock text-2xl text-white"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-yellow-600" id="moderateCount">0</h3>
+            <p class="text-gray-600 font-medium">Moderate Cases</p>
+        </div>
+        
+        <!-- Safe Cases -->
+        <div class="glass-effect rounded-2xl shadow-2xl p-6 text-center card-hover">
+            <div class="safe-gradient w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check-circle text-2xl text-white"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-green-600" id="safeCount">0</h3>
+            <p class="text-gray-600 font-medium">Safe Cases</p>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+        
+        <!-- Patient Intake Form -->
+        <div class="glass-effect rounded-2xl shadow-2xl p-8 card-hover">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 medical-gradient rounded-xl flex items-center justify-center mr-4">
+                    <i class="fas fa-clipboard-list text-2xl text-white"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-800">Patient Intake</h2>
+            </div>
+            
+            <form id="intakeForm" class="space-y-6">
+                <div>
+                    <label for="patientText" class="block text-sm font-semibold text-gray-700 mb-2">
+                        Paste Patient Intake Record
+                    </label>
+                    <textarea 
+                        id="patientText" 
+                        rows="12" 
+                        class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        placeholder="PATIENT ID: PT-001&#10;Name: John Doe&#10;Age: 45&#10;Symptoms: chest pain, shortness of breath&#10;Allergies: Penicillin&#10;BP: 160/90&#10;Pulse: 95&#10;SpO2: 96%&#10;Doctor Notes: Possible cardiac event..."
+                    ></textarea>
+                </div>
+                
+                <button 
+                    type="submit" 
+                    id="screenBtn"
+                    class="w-full medical-gradient text-white py-5 px-8 rounded-xl font-bold text-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 btn-shine"
+                >
+                    <i class="fas fa-search-plus mr-3"></i>Screen Patient Now
+                </button>
+            </form>
+            
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="hidden text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p class="mt-4 text-gray-600 font-medium">Processing patient data...</p>
+            </div>
+        </div>
+        
+        <!-- Results Panel -->
+        <div class="glass-effect rounded-2xl shadow-2xl p-8 card-hover">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 safe-gradient rounded-xl flex items-center justify-center mr-4">
+                    <i class="fas fa-chart-line text-2xl text-white"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-800">Results</h2>
+            </div>
+            
+            <div id="resultsContainer" class="hidden">
+                <!-- Risk Level Badge -->
+                <div id="riskBadge" class="mb-6 text-center">
+                    <div class="inline-block px-6 py-3 rounded-full text-white font-bold text-xl">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <span id="riskLevel">PROCESSING</span>
+                    </div>
+                    <div class="mt-2">
+                        <span class="text-sm text-gray-600">Risk Score: </span>
+                        <span id="riskScore" class="font-bold text-lg">0</span>
+                        <span class="text-sm text-gray-600">/100</span>
+                    </div>
+                </div>
+                
+                <!-- Patient Information -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl">
+                        <h4 class="font-semibold text-gray-700 mb-2">Patient Details</h4>
+                        <p><strong>ID:</strong> <span id="patientId">-</span></p>
+                        <p><strong>Name:</strong> <span id="patientName">-</span></p>
+                        <p><strong>Age:</strong> <span id="patientAge">-</span></p>
+                    </div>
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl">
+                        <h4 class="font-semibold text-gray-700 mb-2">Vital Signs</h4>
+                        <p><strong>BP:</strong> <span id="patientBP">-</span></p>
+                        <p><strong>Pulse:</strong> <span id="patientPulse">-</span> bpm</p>
+                        <p><strong>SpO2:</strong> <span id="patientSpO2">-</span>%</p>
+                    </div>
+                </div>
+                
+                <!-- Symptoms & Allergies -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-xl">
+                        <h4 class="font-semibold text-gray-700 mb-2">Symptoms</h4>
+                        <div id="symptomsList" class="space-y-1"></div>
+                    </div>
+                    <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 rounded-xl">
+                        <h4 class="font-semibold text-gray-700 mb-2">Allergies</h4>
+                        <div id="allergiesList" class="space-y-1"></div>
+                    </div>
+                </div>
+                
+                <!-- Recommendations -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 border-l-4 border-green-400 p-4 rounded-xl">
+                    <h4 class="font-semibold text-green-800 mb-2">
+                        <i class="fas fa-lightbulb mr-2"></i>Recommendations
+                    </h4>
+                    <div id="recommendationsList" class="space-y-1"></div>
+                </div>
+            </div>
+            
+            <!-- Default State -->
+            <div id="defaultState" class="text-center py-12 text-gray-500">
+                <i class="fas fa-clipboard-check text-6xl mb-4"></i>
+                <p class="text-lg">Enter patient intake data to begin screening</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Test Cases -->
+    <div class="mb-12 glass-effect rounded-2xl shadow-2xl p-10">
+        <h3 class="text-3xl font-bold text-gray-800 mb-8 text-center">
+            <i class="fas fa-flask mr-3 text-purple-600"></i>Quick Test Cases
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <!-- Critical Case -->
+            <div class="glass-effect border-2 border-red-300 rounded-2xl p-8 hover:shadow-2xl transition-all card-hover">
+                <div class="flex items-center mb-6">
+                    <div class="w-6 h-6 critical-gradient rounded-full mr-3 pulse-animation"></div>
+                    <h4 class="font-bold text-red-700 text-xl">CRITICAL</h4>
+                </div>
+                <p class="text-gray-700 font-semibold mb-2">PT-001</p>
+                <p class="text-sm text-gray-600 mb-6">High-risk with drug allergy conflict</p>
+                <button onclick="loadTestCase('critical')" class="w-full critical-gradient text-white py-3 px-6 rounded-xl font-bold hover:shadow-xl transition-all btn-shine">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Load Case
+                </button>
+            </div>
+            
+            <!-- Safe Case -->
+            <div class="glass-effect border-2 border-green-300 rounded-2xl p-8 hover:shadow-2xl transition-all card-hover">
+                <div class="flex items-center mb-6">
+                    <div class="w-6 h-6 safe-gradient rounded-full mr-3 pulse-animation"></div>
+                    <h4 class="font-bold text-green-700 text-xl">SAFE</h4>
+                </div>
+                <p class="text-gray-700 font-semibold mb-2">PT-002</p>
+                <p class="text-sm text-gray-600 mb-6">Routine check-up, no risks</p>
+                <button onclick="loadTestCase('safe')" class="w-full safe-gradient text-white py-3 px-6 rounded-xl font-bold hover:shadow-xl transition-all btn-shine">
+                    <i class="fas fa-check-circle mr-2"></i>Load Case
+                </button>
+            </div>
+            
+            <!-- Moderate Case -->
+            <div class="glass-effect border-2 border-yellow-300 rounded-2xl p-8 hover:shadow-2xl transition-all card-hover">
+                <div class="flex items-center mb-6">
+                    <div class="w-6 h-6 moderate-gradient rounded-full mr-3 pulse-animation"></div>
+                    <h4 class="font-bold text-yellow-700 text-xl">MODERATE</h4>
+                </div>
+                <p class="text-gray-700 font-semibold mb-2">PT-003</p>
+                <p class="text-sm text-gray-600 mb-6">Missing critical fields</p>
+                <button onclick="loadTestCase('moderate')" class="w-full moderate-gradient text-white py-3 px-6 rounded-xl font-bold hover:shadow-xl transition-all btn-shine">
+                    <i class="fas fa-clock mr-2"></i>Load Case
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Patient Records Table -->
+    <div class="glass-effect rounded-2xl shadow-2xl overflow-hidden">
+        <div class="px-8 py-6 bg-gradient-to-r from-purple-600 to-blue-600">
+            <h2 class="text-2xl font-bold text-white">
+                <i class="fas fa-list mr-3"></i>All Patient Records
+            </h2>
+        </div>
+        
+        <div id="patientsTableContainer" class="p-8">
+            <div id="emptyPatients" class="text-center py-12">
+                <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+                <p class="text-xl text-gray-500">No patients screened yet</p>
+                <p class="text-gray-400">Start screening patients to see them here</p>
+            </div>
+            
+            <div id="patientsTable" class="hidden overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Patient</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Risk</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Vitals</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Symptoms</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientsTableBody" class="divide-y divide-gray-200">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Test cases data
+const testCases = {
+    critical: `PATIENT ID: PT-001
+Name: Ravi Shankar
+Age: 58  |  Gender: Male
+Ward: Emergency
+Symptoms: Severe chest pain, shortness of breath, radiating pain to left arm.
+Vitals: BP 180/110, Pulse 102, SpO2 94%
+Known Allergies: Penicillin, Aspirin
+Current Medications: Warfarin 5mg daily
+Doctor Notes: Possible acute MI. Rule out STEMI. Do NOT administer aspirin.`,
+    
+    safe: `PATIENT ID: PT-002
+Name: Priya Mehta
+Age: 29  |  Gender: Female
+Ward: General OPD
+Symptoms: Mild seasonal cough, runny nose for 3 days.
+Vitals: BP 118/76, Pulse 72, SpO2 99%
+Known Allergies: None
+Current Medications: None
+Doctor Notes: Likely viral URI. Prescribed antihistamines. Follow up in 5 days if no improvement.`,
+    
+    moderate: `PATIENT ID: PT-003
+Name: [Not Provided]
+Age: ?  |  Gender: Unknown
+Ward: ?
+Symptoms: Dizziness and some pain.
+Vitals: Not recorded.
+Known Allergies: Unknown
+Current Medications: ?
+Doctor Notes: Patient brought in by bystander. Unresponsive on arrival.`
+};
+
+// Load test case
+function loadTestCase(type) {
+    document.getElementById('patientText').value = testCases[type];
+    showNotification(`Loaded ${type.toUpperCase()} test case`, 'info');
+    document.getElementById('patientText').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Update stats
+function updateStats() {
+    fetch('/api/stats')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('totalPatients').textContent = data.stats.totalPatients;
+                document.getElementById('criticalCount').textContent = data.stats.riskLevels.CRITICAL;
+                document.getElementById('moderateCount').textContent = data.stats.riskLevels.MODERATE;
+                document.getElementById('safeCount').textContent = data.stats.riskLevels.SAFE;
+            }
+        });
+}
+
+// Load patients table
+function loadPatients() {
+    fetch('/api/patients')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.patients.length > 0) {
+                document.getElementById('emptyPatients').classList.add('hidden');
+                document.getElementById('patientsTable').classList.remove('hidden');
+                
+                const tbody = document.getElementById('patientsTableBody');
+                tbody.innerHTML = '';
+                
+                data.patients.forEach(patient => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50 transition-colors';
+                    
+                    const riskClass = patient.status === 'CRITICAL' ? 'bg-red-100 text-red-800' :
+                                     patient.status === 'MODERATE' ? 'bg-yellow-100 text-yellow-800' :
+                                     'bg-green-100 text-green-800';
+                    
+                    row.innerHTML = `
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-gray-900">${patient.name || 'Unknown'}</div>
+                            <div class="text-sm text-gray-500">${patient.patientId || 'N/A'}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex px-3 py-1 rounded-full text-sm font-bold ${riskClass}">
+                                ${patient.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            <div>BP: ${patient.bp || 'N/A'}</div>
+                            <div>SpO2: ${patient.spo2 || 'N/A'}%</div>
+                        </td>
+                        <td class="px-6 py-4 text-sm">
+                            ${patient.symptoms ? patient.symptoms.slice(0, 2).join(', ') : 'None'}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            ${new Date(patient.timestamp).toLocaleTimeString()}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        });
+}
+
+// Form submission
+document.getElementById('intakeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const text = document.getElementById('patientText').value.trim();
+    if (!text) {
+        showNotification('Please enter patient intake data', 'warning');
+        return;
+    }
+    
+    document.getElementById('loadingSpinner').classList.remove('hidden');
+    document.getElementById('resultsContainer').classList.add('hidden');
+    document.getElementById('defaultState').classList.add('hidden');
+    document.getElementById('screenBtn').disabled = true;
+    document.getElementById('screenBtn').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+    
+    try {
+        const response = await fetch('/api/screen-patient', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayResults(data);
+            updateStats();
+            loadPatients();
+            showNotification('Patient screened successfully!', 'success');
+        } else {
+            throw new Error(data.error || 'Screening failed');
+        }
+        
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Error: ' + error.message, 'error');
+    } finally {
+        document.getElementById('loadingSpinner').classList.add('hidden');
+        document.getElementById('screenBtn').disabled = false;
+        document.getElementById('screenBtn').innerHTML = '<i class="fas fa-search-plus mr-3"></i>Screen Patient Now';
+    }
+});
+
+// Display results
+function displayResults(data) {
+    const { riskLevel, riskScore, patientData, recommendations } = data;
+    
+    document.getElementById('resultsContainer').classList.remove('hidden');
+    
+    const riskBadge = document.getElementById('riskBadge').querySelector('div');
+    document.getElementById('riskLevel').textContent = riskLevel;
+    document.getElementById('riskScore').textContent = riskScore;
+    
+    riskBadge.className = 'inline-block px-6 py-3 rounded-full text-white font-bold text-xl ';
+    if (riskLevel === 'CRITICAL') {
+        riskBadge.className += 'critical-gradient pulse-animation';
+    } else if (riskLevel === 'MODERATE') {
+        riskBadge.className += 'moderate-gradient';
+    } else {
+        riskBadge.className += 'safe-gradient';
+    }
+    
+    document.getElementById('patientId').textContent = patientData.patientId || 'N/A';
+    document.getElementById('patientName').textContent = patientData.name || 'N/A';
+    document.getElementById('patientAge').textContent = patientData.age || 'N/A';
+    document.getElementById('patientBP').textContent = patientData.bp || 'N/A';
+    document.getElementById('patientPulse').textContent = patientData.pulse || 'N/A';
+    document.getElementById('patientSpO2').textContent = patientData.spo2 || 'N/A';
+    
+    const symptomsList = document.getElementById('symptomsList');
+    symptomsList.innerHTML = '';
+    if (patientData.symptoms && patientData.symptoms.length > 0) {
+        patientData.symptoms.forEach(symptom => {
+            const div = document.createElement('div');
+            div.className = 'text-sm text-gray-700';
+            div.innerHTML = `<i class="fas fa-circle text-xs text-red-400 mr-2"></i>${symptom}`;
+            symptomsList.appendChild(div);
+        });
+    } else {
+        symptomsList.innerHTML = '<div class="text-sm text-gray-500">None reported</div>';
+    }
+    
+    const allergiesList = document.getElementById('allergiesList');
+    allergiesList.innerHTML = '';
+    if (patientData.allergies && patientData.allergies.length > 0) {
+        patientData.allergies.forEach(allergy => {
+            const div = document.createElement('div');
+            div.className = 'text-sm text-gray-700';
+            div.innerHTML = `<i class="fas fa-exclamation-triangle text-xs text-yellow-500 mr-2"></i>${allergy}`;
+            allergiesList.appendChild(div);
+        });
+    } else {
+        allergiesList.innerHTML = '<div class="text-sm text-gray-500">None known</div>';
+    }
+    
+    const recommendationsList = document.getElementById('recommendationsList');
+    recommendationsList.innerHTML = '';
+    if (recommendations && recommendations.length > 0) {
+        recommendations.forEach(rec => {
+            const div = document.createElement('div');
+            div.className = 'text-sm text-green-800 font-medium';
+            div.innerHTML = `<i class="fas fa-arrow-right text-xs mr-2"></i>${rec}`;
+            recommendationsList.appendChild(div);
+        });
+    }
+    
+    document.getElementById('resultsContainer').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Initialize
+updateStats();
+loadPatients();
+setInterval(() => {
+    updateStats();
+    loadPatients();
+}, 10000);
+</script>
+{% endblock %}

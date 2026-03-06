@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedGuard AI - Patient Safety Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Poppins', sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .medical-gradient { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .critical-gradient { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); }
+        .moderate-gradient { background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%); }
+        .safe-gradient { background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%); }
+        .glass { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    </style>
+</head>
+<body class="min-h-screen p-4">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8 text-white">
+            <i class="fas fa-shield-virus text-6xl mb-4"></i>
+            <h1 class="text-5xl font-bold mb-2">MedGuard AI</h1>
+            <p class="text-xl">Patient Safety Intelligence System</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-4 gap-4 mb-8">
+            <div class="glass p-6 text-center">
+                <div class="medical-gradient w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-users text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold" id="totalPatients">0</h3>
+                <p class="text-sm text-gray-600">Total</p>
+            </div>
+            <div class="glass p-6 text-center">
+                <div class="critical-gradient w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 pulse">
+                    <i class="fas fa-exclamation-triangle text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-red-600" id="criticalCount">0</h3>
+                <p class="text-sm text-gray-600">Critical</p>
+            </div>
+            <div class="glass p-6 text-center">
+                <div class="moderate-gradient w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-clock text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-yellow-600" id="moderateCount">0</h3>
+                <p class="text-sm text-gray-600">Moderate</p>
+            </div>
+            <div class="glass p-6 text-center">
+                <div class="safe-gradient w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-check-circle text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-green-600" id="safeCount">0</h3>
+                <p class="text-sm text-gray-600">Safe</p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-2 gap-8 mb-8">
+            <!-- Input -->
+            <div class="glass p-8">
+                <h2 class="text-2xl font-bold mb-4"><i class="fas fa-clipboard-list mr-2"></i>Patient Intake</h2>
+                <textarea id="patientText" rows="10" class="w-full p-4 border-2 rounded-xl" placeholder="PATIENT ID: PT-001&#10;Name: John Doe&#10;Age: 45&#10;Symptoms: chest pain&#10;BP: 160/90"></textarea>
+                <button onclick="screenPatient()" class="w-full medical-gradient text-white py-4 rounded-xl font-bold mt-4">
+                    <i class="fas fa-search-plus mr-2"></i>Screen Patient
+                </button>
+            </div>
+
+            <!-- Results -->
+            <div class="glass p-8">
+                <h2 class="text-2xl font-bold mb-4"><i class="fas fa-chart-line mr-2"></i>Results</h2>
+                <div id="results" class="text-center text-gray-500">
+                    <i class="fas fa-clipboard-check text-6xl mb-4"></i>
+                    <p>Enter patient data to begin</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Cases -->
+        <div class="glass p-8 mb-8">
+            <h3 class="text-2xl font-bold mb-6 text-center"><i class="fas fa-flask mr-2"></i>Quick Test Cases</h3>
+            <div class="grid grid-cols-3 gap-6">
+                <button onclick="loadCase('critical')" class="critical-gradient text-white p-6 rounded-xl font-bold">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>CRITICAL - PT-001
+                </button>
+                <button onclick="loadCase('safe')" class="safe-gradient text-white p-6 rounded-xl font-bold">
+                    <i class="fas fa-check-circle mr-2"></i>SAFE - PT-002
+                </button>
+                <button onclick="loadCase('moderate')" class="moderate-gradient text-white p-6 rounded-xl font-bold">
+                    <i class="fas fa-clock mr-2"></i>MODERATE - PT-003
+                </button>
+            </div>
+        </div>
+
+        <!-- Patients Table -->
+        <div class="glass p-8">
+            <h3 class="text-2xl font-bold mb-6"><i class="fas fa-list mr-2"></i>All Patients</h3>
+            <div id="patientsTable"></div>
+        </div>
+    </div>
+
+    <script>
+        const GEMINI_API_KEY = 'AIzaSyDkFRAgQ1gRuKaKjJDPKj7Udf2B_xXyBfs';
+        
+        const testCases = {
+            critical: `PATIENT ID: PT-001\nName: Ravi Shankar\nAge: 58\nSymptoms: Severe chest pain, shortness of breath\nVitals: BP 180/110, Pulse 102, SpO2 94%\nAllergies: Penicillin, Aspirin\nDoctor Notes: Possible acute MI.`,
+            safe: `PATIENT ID: PT-002\nName: Priya Mehta\nAge: 29\nSymptoms: Mild cough, runny nose\nVitals: BP 118/76, Pulse 72, SpO2 99%\nAllergies: None`,
+            moderate: `PATIENT ID: PT-003\nName: [Not Provided]\nAge: ?\nSymptoms: Dizziness\nVitals: Not recorded`
+        };
+
+        function loadCase(type) {
+            document.getElementById('patientText').value = testCases[type];
+        }
+
+        async function screenPatient() {
+            const text = document.getElementById('patientText').value;
+            if (!text) return alert('Enter patient data');
+
+            const data = extractData(text);
+            const triage = classifyPatient(data);
+            
+            const patient = { ...data, ...triage, timestamp: new Date().toISOString() };
+            savePatient(patient);
+            displayResults(patient);
+            updateStats();
+            loadPatients();
+        }
+
+        function extractData(text) {
+            return {
+                patientId: (text.match(/PATIENT ID:\s*([^\n]+)/i) || ['', 'PT-000'])[1].trim(),
+                name: (text.match(/Name:\s*([^\n]+)/i) || ['', 'Unknown'])[1].trim(),
+                age: parseInt((text.match(/Age:\s*(\d+)/i) || ['', '0'])[1]) || 0,
+                symptoms: (text.match(/Symptoms?:\s*([^\n]+)/i) || ['', ''])[1].split(',').map(s => s.trim()),
+                allergies: (text.match(/Allergies:\s*([^\n]+)/i) || ['', 'None'])[1].split(',').map(s => s.trim()),
+                bp: (text.match(/BP:?\s*(\d+\/\d+)/i) || ['', '0/0'])[1],
+                pulse: parseInt((text.match(/Pulse:?\s*(\d+)/i) || ['', '0'])[1]) || 0,
+                spo2: parseInt((text.match(/SpO2:?\s*(\d+)/i) || ['', '0'])[1]) || 0
+            };
+        }
+
+        function classifyPatient(data) {
+            const critical = ['chest pain', 'shortness of breath', 'difficulty breathing'];
+            const hasCritical = data.symptoms.some(s => critical.some(c => s.toLowerCase().includes(c)));
+            const highBP = parseInt(data.bp.split('/')[0]) > 160;
+            const lowSpO2 = data.spo2 < 96;
+            
+            if (hasCritical || highBP || lowSpO2) {
+                return { status: 'CRITICAL', riskScore: 85, recommendations: ['🚨 IMMEDIATE ATTENTION REQUIRED'] };
+            }
+            
+            if (!data.name || data.name === 'Unknown' || data.age === 0 || data.bp === '0/0') {
+                return { status: 'MODERATE', riskScore: 50, recommendations: ['⚡ Priority triage needed'] };
+            }
+            
+            return { status: 'SAFE', riskScore: 0, recommendations: ['✅ Standard process'] };
+        }
+
+        function savePatient(patient) {
+            const patients = JSON.parse(localStorage.getItem('patients') || '[]');
+            patients.push(patient);
+            localStorage.setItem('patients', JSON.stringify(patients));
+        }
+
+        function displayResults(patient) {
+            const colors = { CRITICAL: 'critical-gradient', MODERATE: 'moderate-gradient', SAFE: 'safe-gradient' };
+            document.getElementById('results').innerHTML = `
+                <div class="${colors[patient.status]} text-white p-4 rounded-xl mb-4">
+                    <h3 class="text-2xl font-bold">${patient.status}</h3>
+                    <p class="text-lg">Risk Score: ${patient.riskScore}/100</p>
+                </div>
+                <div class="text-left space-y-2">
+                    <p><strong>ID:</strong> ${patient.patientId}</p>
+                    <p><strong>Name:</strong> ${patient.name}</p>
+                    <p><strong>Age:</strong> ${patient.age}</p>
+                    <p><strong>BP:</strong> ${patient.bp}</p>
+                    <p><strong>SpO2:</strong> ${patient.spo2}%</p>
+                    <p><strong>Symptoms:</strong> ${patient.symptoms.join(', ')}</p>
+                </div>
+            `;
+        }
+
+        function updateStats() {
+            const patients = JSON.parse(localStorage.getItem('patients') || '[]');
+            document.getElementById('totalPatients').textContent = patients.length;
+            document.getElementById('criticalCount').textContent = patients.filter(p => p.status === 'CRITICAL').length;
+            document.getElementById('moderateCount').textContent = patients.filter(p => p.status === 'MODERATE').length;
+            document.getElementById('safeCount').textContent = patients.filter(p => p.status === 'SAFE').length;
+        }
+
+        function loadPatients() {
+            const patients = JSON.parse(localStorage.getItem('patients') || '[]');
+            const colors = { CRITICAL: 'bg-red-100 text-red-800', MODERATE: 'bg-yellow-100 text-yellow-800', SAFE: 'bg-green-100 text-green-800' };
+            
+            document.getElementById('patientsTable').innerHTML = patients.length ? `
+                <table class="w-full">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="p-3 text-left">Patient</th>
+                            <th class="p-3 text-left">Risk</th>
+                            <th class="p-3 text-left">Vitals</th>
+                            <th class="p-3 text-left">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${patients.map(p => `
+                            <tr class="border-t">
+                                <td class="p-3">${p.name}<br><small class="text-gray-500">${p.patientId}</small></td>
+                                <td class="p-3"><span class="px-3 py-1 rounded-full text-sm font-bold ${colors[p.status]}">${p.status}</span></td>
+                                <td class="p-3">BP: ${p.bp}<br>SpO2: ${p.spo2}%</td>
+                                <td class="p-3 text-sm text-gray-500">${new Date(p.timestamp).toLocaleTimeString()}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            ` : '<p class="text-center text-gray-500">No patients yet</p>';
+        }
+
+        // Initialize
+        updateStats();
+        loadPatients();
+    </script>
+</body>
+</html>

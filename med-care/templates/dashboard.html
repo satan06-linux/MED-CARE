@@ -1,0 +1,446 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - MedGuard AI{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="gradient-bg py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-white mb-4">
+                <i class="fas fa-chart-bar mr-3"></i>Patient Dashboard
+            </h1>
+            <p class="text-lg text-blue-200">Real-time monitoring of all screened patients</p>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        
+        <!-- Total Patients -->
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+            <div class="medical-gradient w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-users text-2xl text-white"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-800" id="totalPatients">0</h3>
+            <p class="text-gray-600">Total Patients</p>
+        </div>
+        
+        <!-- Critical Cases -->
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+            <div class="critical-gradient w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-2xl text-white"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-red-600" id="criticalCount">0</h3>
+            <p class="text-gray-600">Critical Cases</p>
+        </div>
+        
+        <!-- Moderate Cases -->
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+            <div class="moderate-gradient w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-clock text-2xl text-white"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-yellow-600" id="moderateCount">0</h3>
+            <p class="text-gray-600">Moderate Cases</p>
+        </div>
+        
+        <!-- Safe Cases -->
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+            <div class="safe-gradient w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check-circle text-2xl text-white"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-green-600" id="safeCount">0</h3>
+            <p class="text-gray-600">Safe Cases</p>
+        </div>
+    </div>
+    
+    <!-- Controls -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <div class="flex items-center space-x-4">
+                <button id="refreshBtn" class="medical-gradient text-white px-6 py-2 rounded-lg hover:shadow-lg transition-all">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                </button>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-circle text-green-500 pulse-animation"></i>
+                    <span class="text-sm text-gray-600">Live Updates</span>
+                </div>
+            </div>
+            
+            <!-- Filter Controls -->
+            <div class="flex items-center space-x-4">
+                <select id="riskFilter" class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
+                    <option value="all">All Risk Levels</option>
+                    <option value="CRITICAL">Critical Only</option>
+                    <option value="MODERATE">Moderate Only</option>
+                    <option value="SAFE">Safe Only</option>
+                </select>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search by name or ID..." 
+                    class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                >
+            </div>
+        </div>
+    </div>
+    
+    <!-- Patients Table -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-bold text-gray-800">
+                <i class="fas fa-list mr-2"></i>Patient Records
+            </h2>
+        </div>
+        
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p class="mt-4 text-gray-600">Loading patient data...</p>
+        </div>
+        
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-12">
+            <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+            <p class="text-xl text-gray-500">No patients found</p>
+            <p class="text-gray-400">Start screening patients to see them here</p>
+        </div>
+        
+        <!-- Patients List -->
+        <div id="patientsContainer" class="hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Level</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vitals</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key Symptoms</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patientsTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Patients will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Detail Modal -->
+<div id="patientModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800" id="modalPatientName">Patient Details</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            
+            <!-- Modal Content -->
+            <div id="modalContent" class="space-y-6">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let allPatients = [];
+let filteredPatients = [];
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    loadPatients();
+    
+    // Set up event listeners
+    document.getElementById('refreshBtn').addEventListener('click', loadPatients);
+    document.getElementById('riskFilter').addEventListener('change', filterPatients);
+    document.getElementById('searchInput').addEventListener('input', filterPatients);
+    document.getElementById('closeModal').addEventListener('click', closeModal);
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadPatients, 30000);
+});
+
+// Load patients from API
+async function loadPatients() {
+    try {
+        document.getElementById('loadingState').classList.remove('hidden');
+        document.getElementById('patientsContainer').classList.add('hidden');
+        document.getElementById('emptyState').classList.add('hidden');
+        
+        const response = await fetch('/api/patients');
+        const data = await response.json();
+        
+        if (data.success) {
+            allPatients = data.patients;
+            updateStats(data.patients);
+            filterPatients();
+        } else {
+            throw new Error(data.error || 'Failed to load patients');
+        }
+        
+    } catch (error) {
+        console.error('Error loading patients:', error);
+        showNotification('Error loading patient data: ' + error.message, 'error');
+        document.getElementById('loadingState').classList.add('hidden');
+        document.getElementById('emptyState').classList.remove('hidden');
+    }
+}
+
+// Update statistics
+function updateStats(patients) {
+    const stats = {
+        total: patients.length,
+        critical: patients.filter(p => p.status === 'CRITICAL').length,
+        moderate: patients.filter(p => p.status === 'MODERATE').length,
+        safe: patients.filter(p => p.status === 'SAFE').length
+    };
+    
+    document.getElementById('totalPatients').textContent = stats.total;
+    document.getElementById('criticalCount').textContent = stats.critical;
+    document.getElementById('moderateCount').textContent = stats.moderate;
+    document.getElementById('safeCount').textContent = stats.safe;
+}
+
+// Filter patients based on search and risk level
+function filterPatients() {
+    const riskFilter = document.getElementById('riskFilter').value;
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    
+    filteredPatients = allPatients.filter(patient => {
+        const matchesRisk = riskFilter === 'all' || patient.status === riskFilter;
+        const matchesSearch = !searchTerm || 
+            (patient.name && patient.name.toLowerCase().includes(searchTerm)) ||
+            (patient.patientId && patient.patientId.toLowerCase().includes(searchTerm));
+        
+        return matchesRisk && matchesSearch;
+    });
+    
+    renderPatients(filteredPatients);
+}
+
+// Render patients table
+function renderPatients(patients) {
+    document.getElementById('loadingState').classList.add('hidden');
+    
+    if (patients.length === 0) {
+        document.getElementById('patientsContainer').classList.add('hidden');
+        document.getElementById('emptyState').classList.remove('hidden');
+        return;
+    }
+    
+    document.getElementById('emptyState').classList.add('hidden');
+    document.getElementById('patientsContainer').classList.remove('hidden');
+    
+    const tbody = document.getElementById('patientsTableBody');
+    tbody.innerHTML = '';
+    
+    patients.forEach(patient => {
+        const row = createPatientRow(patient);
+        tbody.appendChild(row);
+    });
+}
+
+// Create patient table row
+function createPatientRow(patient) {
+    const row = document.createElement('tr');
+    row.className = 'hover:bg-gray-50 transition-colors';
+    
+    // Risk level styling
+    const riskClass = getRiskClass(patient.status);
+    const riskIcon = getRiskIcon(patient.status);
+    
+    row.innerHTML = `
+        <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+                <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">${patient.name || 'Unknown'}</div>
+                    <div class="text-sm text-gray-500">${patient.patientId || 'N/A'} • Age: ${patient.age || 'N/A'}</div>
+                </div>
+            </div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${riskClass}">
+                <i class="${riskIcon} mr-1"></i>
+                ${patient.status}
+            </span>
+            <div class="text-xs text-gray-500 mt-1">Score: ${patient.riskScore || 0}/100</div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <div>BP: ${patient.bp || 'N/A'}</div>
+            <div>Pulse: ${patient.pulse || 'N/A'}</div>
+            <div>SpO2: ${patient.spo2 || 'N/A'}%</div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+            <div class="max-w-xs truncate">
+                ${patient.symptoms ? patient.symptoms.slice(0, 2).join(', ') : 'None reported'}
+                ${patient.symptoms && patient.symptoms.length > 2 ? '...' : ''}
+            </div>
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            ${formatTimestamp(patient.timestamp || patient.processedAt)}
+        </td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+            <button onclick="showPatientDetails('${patient.id || patient.patientId}')" 
+                    class="text-blue-600 hover:text-blue-900 transition-colors">
+                <i class="fas fa-eye mr-1"></i>View Details
+            </button>
+        </td>
+    `;
+    
+    return row;
+}
+
+// Get risk level CSS class
+function getRiskClass(status) {
+    switch (status) {
+        case 'CRITICAL': return 'bg-red-100 text-red-800';
+        case 'MODERATE': return 'bg-yellow-100 text-yellow-800';
+        case 'SAFE': return 'bg-green-100 text-green-800';
+        default: return 'bg-gray-100 text-gray-800';
+    }
+}
+
+// Get risk level icon
+function getRiskIcon(status) {
+    switch (status) {
+        case 'CRITICAL': return 'fas fa-exclamation-triangle';
+        case 'MODERATE': return 'fas fa-clock';
+        case 'SAFE': return 'fas fa-check-circle';
+        default: return 'fas fa-question-circle';
+    }
+}
+
+// Show patient details modal
+function showPatientDetails(patientId) {
+    const patient = allPatients.find(p => p.id === patientId || p.patientId === patientId);
+    if (!patient) return;
+    
+    document.getElementById('modalPatientName').textContent = `${patient.name || 'Unknown Patient'} (${patient.patientId || 'N/A'})`;
+    
+    const modalContent = document.getElementById('modalContent');
+    modalContent.innerHTML = `
+        <!-- Risk Assessment -->
+        <div class="bg-gray-50 p-6 rounded-lg">
+            <h4 class="text-lg font-semibold mb-4">Risk Assessment</h4>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${getRiskClass(patient.status)}">
+                        <i class="${getRiskIcon(patient.status)} mr-2"></i>
+                        ${patient.status}
+                    </span>
+                </div>
+                <div class="text-right">
+                    <div class="text-2xl font-bold text-gray-800">${patient.riskScore || 0}</div>
+                    <div class="text-sm text-gray-500">Risk Score / 100</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Patient Information -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="text-lg font-semibold mb-3">Patient Details</h4>
+                <div class="space-y-2">
+                    <p><strong>ID:</strong> ${patient.patientId || 'N/A'}</p>
+                    <p><strong>Name:</strong> ${patient.name || 'Unknown'}</p>
+                    <p><strong>Age:</strong> ${patient.age || 'N/A'}</p>
+                </div>
+            </div>
+            <div>
+                <h4 class="text-lg font-semibold mb-3">Vital Signs</h4>
+                <div class="space-y-2">
+                    <p><strong>Blood Pressure:</strong> ${patient.bp || 'N/A'}</p>
+                    <p><strong>Pulse:</strong> ${patient.pulse || 'N/A'} bpm</p>
+                    <p><strong>SpO2:</strong> ${patient.spo2 || 'N/A'}%</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Symptoms -->
+        <div>
+            <h4 class="text-lg font-semibold mb-3">Symptoms</h4>
+            <div class="bg-red-50 p-4 rounded-lg">
+                ${patient.symptoms && patient.symptoms.length > 0 
+                    ? patient.symptoms.map(s => `<span class="inline-block bg-red-100 text-red-800 px-2 py-1 rounded text-sm mr-2 mb-2">${s}</span>`).join('')
+                    : '<span class="text-gray-500">None reported</span>'
+                }
+            </div>
+        </div>
+        
+        <!-- Allergies -->
+        <div>
+            <h4 class="text-lg font-semibold mb-3">Known Allergies</h4>
+            <div class="bg-yellow-50 p-4 rounded-lg">
+                ${patient.allergies && patient.allergies.length > 0 
+                    ? patient.allergies.map(a => `<span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm mr-2 mb-2">${a}</span>`).join('')
+                    : '<span class="text-gray-500">None known</span>'
+                }
+            </div>
+        </div>
+        
+        <!-- Medications -->
+        <div>
+            <h4 class="text-lg font-semibold mb-3">Current Medications</h4>
+            <div class="bg-blue-50 p-4 rounded-lg">
+                ${patient.medications && patient.medications.length > 0 
+                    ? patient.medications.map(m => `<span class="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm mr-2 mb-2">${m}</span>`).join('')
+                    : '<span class="text-gray-500">None listed</span>'
+                }
+            </div>
+        </div>
+        
+        <!-- Doctor Notes -->
+        ${patient.doctorNotes ? `
+        <div>
+            <h4 class="text-lg font-semibold mb-3">Doctor Notes</h4>
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-gray-700">${patient.doctorNotes}</p>
+            </div>
+        </div>
+        ` : ''}
+        
+        <!-- Recommendations -->
+        ${patient.recommendations && patient.recommendations.length > 0 ? `
+        <div>
+            <h4 class="text-lg font-semibold mb-3">Recommendations</h4>
+            <div class="bg-green-50 p-4 rounded-lg">
+                <ul class="space-y-1">
+                    ${patient.recommendations.map(r => `<li class="text-green-800"><i class="fas fa-arrow-right mr-2"></i>${r}</li>`).join('')}
+                </ul>
+            </div>
+        </div>
+        ` : ''}
+        
+        <!-- Timestamp -->
+        <div class="text-sm text-gray-500 text-center pt-4 border-t">
+            Processed: ${formatTimestamp(patient.timestamp || patient.processedAt)}
+        </div>
+    `;
+    
+    document.getElementById('patientModal').classList.remove('hidden');
+}
+
+// Close modal
+function closeModal() {
+    document.getElementById('patientModal').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.getElementById('patientModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+</script>
+{% endblock %}

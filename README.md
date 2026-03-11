@@ -150,18 +150,6 @@ Do not include any explanation, markdown formatting, or extra text.
 - **Server timestamps** for accurate sorting
 - **Proper data structure** matching hackathon specs
 
-## 🏆 Evaluation Ready
-
-The system is designed to score full points on all criteria:
-
-- ✅ **Data Extraction (20 pts)**: PT-001 saved with all fields
-- ✅ **CRITICAL Logic (20 pts)**: Chest pain + high BP detected
-- ✅ **MODERATE Logic (15 pts)**: Missing data identified
-- ✅ **Live Dashboard (15 pts)**: Color-coded real-time display
-- ✅ **Deployment (15 pts)**: Ready for public URL deployment
-- ✅ **Prompt Quality (10 pts)**: Optimized system prompt
-- ✅ **AI Agent Log (5 pts)**: Development process documented
-
 ## 🚀 Deployment
 
 For deployment to public URL:

@@ -186,11 +186,7 @@ git push heroku main
 
 Update Firebase credentials in `app.py` for production deployment.
 
-## 📝 AI Agent Log
 
-"Used Kiro AI assistant to architect the complete MedGuard AI system, implementing Flask backend with Gemini AI integration, Firebase Firestore database, responsive frontend with Tailwind CSS, and comprehensive triage logic following hackathon specifications."
-
----
 
 **⚡ MedGuard AI - Saving lives through intelligent triage**
 

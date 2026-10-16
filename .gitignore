@@ -1,0 +1,13 @@
+# Ignore environment and local files
+.env
+.env.local
+serviceAccountKey.json
+__pycache__/
+node_modules/
+venv/
+*.pyc
+.DS_Store
+/*.sqlite3
+/.idea/
+.vscode/
+.env.*
